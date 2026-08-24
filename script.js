@@ -1,63 +1,36 @@
-let schedule = [];
-let members = [];
+// ==================== KONFIGURASI JADWAL ====================
+const CONFIG = {
+    tahun: 2026,
+    bulan: 9, // Bulan 1-12 (9 = September)
+    jumlahHari: 30,
+    piketPerHari: 3,
+    nginapPerHari: 2,
+    daftarNama: [
+        "Haydar", "Baihaqi", "Gibran", "Rafly", "Roket",
+        "Lutfi", "Kausar", "Hakim", "Iksan", "Fras",
+        "Dimas", "Sultan", "Agoy", "Mirja", "Ridho"
+    ]
+};
 
+// 8 Orang Khusus yang Mendapatkan Jadwal Nginap (Jumat & Sabtu)
+const KHUSUS_NGINAP = ['Haydar', 'Baihaqi', 'Gibran', 'Rafly', 'Roket', 'Lutfi', 'Kausar', 'Hakim'];
 
+// Helper Format Hari & Tanggal
 const NAMA_HARI = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
 const NAMA_BULAN = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
 
+let schedule = [];
+let members = CONFIG.daftarNama;
 
-const KHUSUS_NGINAP = ['Haydar', 'Baihaqi', 'Gibran', 'Rafly', 'Roket', 'Lutfi', 'Kausar', 'Hakim'];
-
-
-function updateSlotStats() {
-    const hari = parseInt(document.getElementById('cfg-hari').value) || 0;
-    const piket = parseInt(document.getElementById('cfg-piket-hari').value) || 0;
-    const nginap = parseInt(document.getElementById('cfg-nginap-hari').value) || 0;
-    const tahun = parseInt(document.getElementById('cfg-tahun').value) || 2026;
-    const bulan = (parseInt(document.getElementById('cfg-bulan').value) || 1) - 1;
-
-    
-    let totalHariNginap = 0;
-    for (let d = 1; d <= hari; d++) {
-        const date = new Date(tahun, bulan, d);
-        const dayOfWeek = date.getDay();
-        if (dayOfWeek === 5 || dayOfWeek === 6) { 
-            totalHariNginap++;
-        }
-    }
-
-    const totalPiket = hari * piket;
-    const totalNginap = totalHariNginap * nginap;
-
-    document.getElementById('stat-piket').innerText = totalPiket;
-    document.getElementById('stat-nginap').innerText = totalNginap;
-    document.getElementById('stat-total').innerText = totalPiket + totalNginap;
-}
-
-
+// Algoritma Generasi Jadwal
 function generateSchedule() {
-    const totalHari = parseInt(document.getElementById('cfg-hari').value);
-    const totalAnggota = parseInt(document.getElementById('cfg-anggota').value);
-    const piketPerHari = parseInt(document.getElementById('cfg-piket-hari').value);
-    const nginapPerHari = parseInt(document.getElementById('cfg-nginap-hari').value);
-    const tahun = parseInt(document.getElementById('cfg-tahun').value) || 2026;
-    const bulan = (parseInt(document.getElementById('cfg-bulan').value) || 1) - 1;
+    const totalHari = CONFIG.jumlahHari;
+    const piketPerHari = CONFIG.piketPerHari;
+    const nginapPerHari = CONFIG.nginapPerHari;
+    const tahun = CONFIG.tahun;
+    const bulan = CONFIG.bulan - 1; // 0-index JS Date
 
-    
-    const inputNama = document.getElementById('cfg-daftar-nama').value;
-    let customMembers = inputNama.split('\n').map(name => name.trim()).filter(name => name !== '');
-
-    
-    members = [];
-    for (let i = 0; i < totalAnggota; i++) {
-        if (customMembers[i]) {
-            members.push(customMembers[i]);
-        } else {
-            members.push(`Anggota ${i + 1}`);
-        }
-    }
-
-    
+    // Tracking statistik per anggota
     let stats = members.map(name => ({
         name,
         piketCount: 0,
@@ -70,7 +43,7 @@ function generateSchedule() {
 
     for (let day = 1; day <= totalHari; day++) {
         const currentDate = new Date(tahun, bulan, day);
-        const dayOfWeek = currentDate.getDay(); // 
+        const dayOfWeek = currentDate.getDay(); // 0: Minggu, ..., 5: Jumat, 6: Sabtu
         const namaHari = NAMA_HARI[dayOfWeek];
         const tanggalStr = `${currentDate.getDate()} ${NAMA_BULAN[currentDate.getMonth()]} ${currentDate.getFullYear()}`;
 
@@ -83,10 +56,9 @@ function generateSchedule() {
         };
         let assignedToday = new Set();
 
-        
+        // 1. Assign Nginap (Hanya Jumat & Sabtu, dan KHUSUS 8 orang tertentu)
         if (dayOfWeek === 5 || dayOfWeek === 6) {
             for (let i = 0; i < nginapPerHari; i++) {
-                
                 let candidates = stats.filter(m => 
                     !assignedToday.has(m.name) && 
                     KHUSUS_NGINAP.some(kn => kn.toLowerCase() === m.name.toLowerCase())
@@ -111,7 +83,7 @@ function generateSchedule() {
             }
         }
 
-        
+        // 2. Assign Piket (Berjalan setiap hari, terbuka untuk SEMUA anggota)
         for (let i = 0; i < piketPerHari; i++) {
             let candidates = stats.filter(m => !assignedToday.has(m.name));
 
@@ -137,10 +109,9 @@ function generateSchedule() {
     }
 
     renderCalendar();
-    renderSummary();
 }
 
-
+// Render Kalender Jadwal
 function renderCalendar() {
     const calendarEl = document.getElementById('calendar');
     calendarEl.innerHTML = '';
@@ -183,36 +154,8 @@ function renderCalendar() {
     });
 }
 
-
-function renderSummary() {
-    const summaryTbody = document.getElementById('summary-table');
-    summaryTbody.innerHTML = '';
-
-    let counts = {};
-    members.forEach(m => counts[m] = { piket: 0, nginap: 0, total: 0 });
-
-    schedule.forEach(day => {
-        day.piket.forEach(m => { if(counts[m]) { counts[m].piket++; counts[m].total++; } });
-        day.nginap.forEach(m => { if(counts[m]) { counts[m].nginap++; counts[m].total++; } });
-    });
-
-    Object.keys(counts).forEach(member => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td><b>${member}</b></td>
-            <td>${counts[member].piket}</td>
-            <td>${counts[member].nginap}</td>
-            <td><b>${counts[member].total}</b></td>
-        `;
-        summaryTbody.appendChild(row);
-    });
-}
-
-
+// Jalankan pembuatan jadwal saat halaman dimuat
 document.addEventListener('DOMContentLoaded', () => {
-    document.querySelectorAll('.grid-config input, #cfg-daftar-nama').forEach(input => {
-        input.addEventListener('input', updateSlotStats);
-    });
-    updateSlotStats();
+    
     generateSchedule();
 });
