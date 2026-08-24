@@ -3,8 +3,8 @@ const CONFIG = {
     tahun: 2026,
     bulan: 9, // Bulan 1-12 (9 = September)
     jumlahHari: 30,
-    piketPerHari: 3,
-    nginapPerHari: 2,
+    piketPerHari: 1,
+    nginapPerHari: 1,
     daftarNama: [
         "Haydar", "Baihaqi", "Gibran", "Rafly", "Roket",
         "Lutfi", "Kausar", "Hakim", "Iksan", "Fras",
@@ -156,6 +156,6 @@ function renderCalendar() {
 
 // Jalankan pembuatan jadwal saat halaman dimuat
 document.addEventListener('DOMContentLoaded', () => {
-    
+
     generateSchedule();
 });
