@@ -5,6 +5,9 @@ let members = [];
 const NAMA_HARI = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
 const NAMA_BULAN = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
 
+// Daftar Anggota Khusus Nginap (Jumat & Sabtu)
+const KHUSUS_NGINAP = ['Haydar', 'Baihaqi', 'Gibran', 'Rafly', 'Roket', 'Lutfi', 'Kausar', 'Hakim'];
+
 // Update kalkulasi slot secara realtime
 function updateSlotStats() {
     const hari = parseInt(document.getElementById('cfg-hari').value) || 0;
@@ -13,7 +16,7 @@ function updateSlotStats() {
     const tahun = parseInt(document.getElementById('cfg-tahun').value) || 2026;
     const bulan = (parseInt(document.getElementById('cfg-bulan').value) || 1) - 1;
 
-    // Hitung berapa banyak hari Jumat dan Sabtu dalam durasi hari yang ditentukan
+    // Hitung berapa banyak hari Jumat dan Sabtu
     let totalHariNginap = 0;
     for (let d = 1; d <= hari; d++) {
         const date = new Date(tahun, bulan, d);
@@ -54,20 +57,20 @@ function generateSchedule() {
         }
     }
 
-    // Dynamic State tracking untuk menjaga keadilan
+    // Tracking statistik per anggota
     let stats = members.map(name => ({
         name,
         piketCount: 0,
         nginapCount: 0,
         total: 0,
-        lastDutyDay: -2 // melacak hari terakhir bertugas
+        lastDutyDay: -2
     }));
 
     schedule = [];
 
     for (let day = 1; day <= totalHari; day++) {
         const currentDate = new Date(tahun, bulan, day);
-        const dayOfWeek = currentDate.getDay(); // 0: Minggu, 1: Senin, ..., 5: Jumat, 6: Sabtu
+        const dayOfWeek = currentDate.getDay(); // 0: Minggu, ..., 5: Jumat, 6: Sabtu
         const namaHari = NAMA_HARI[dayOfWeek];
         const tanggalStr = `${currentDate.getDate()} ${NAMA_BULAN[currentDate.getMonth()]} ${currentDate.getFullYear()}`;
 
@@ -80,10 +83,14 @@ function generateSchedule() {
         };
         let assignedToday = new Set();
 
-        // 1. Assign Nginap HANYA jika hari Jumat (5) atau Sabtu (6)
+        // 1. Assign Nginap (Hanya Jumat & Sabtu, dan KHUSUS 8 orang tertentu)
         if (dayOfWeek === 5 || dayOfWeek === 6) {
             for (let i = 0; i < nginapPerHari; i++) {
-                let candidates = stats.filter(m => !assignedToday.has(m.name));
+                // Filter kandidat: Belum bertugas hari ini DAN namanya ada dalam daftar KHUSUS_NGINAP
+                let candidates = stats.filter(m => 
+                    !assignedToday.has(m.name) && 
+                    KHUSUS_NGINAP.some(kn => kn.toLowerCase() === m.name.toLowerCase())
+                );
                 
                 candidates.sort((a, b) => {
                     let aConsecutive = (a.lastDutyDay === day - 1) ? 1 : 0;
@@ -104,7 +111,7 @@ function generateSchedule() {
             }
         }
 
-        // 2. Assign Piket (Berjalan di setiap hari)
+        // 2. Assign Piket (Berjalan setiap hari, terbuka untuk SEMUA anggota)
         for (let i = 0; i < piketPerHari; i++) {
             let candidates = stats.filter(m => !assignedToday.has(m.name));
 
@@ -133,7 +140,7 @@ function generateSchedule() {
     renderSummary();
 }
 
-// Render Kalender (Hanya menampilkan seksi Nginap jika ada anggotanya)
+// Render Kalender
 function renderCalendar() {
     const calendarEl = document.getElementById('calendar');
     calendarEl.innerHTML = '';
