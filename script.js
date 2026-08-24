@@ -22,8 +22,20 @@ function generateSchedule() {
     const piketPerHari = parseInt(document.getElementById('cfg-piket-hari').value);
     const nginapPerHari = parseInt(document.getElementById('cfg-nginap-hari').value);
 
-    members = Array.from({ length: totalAnggota }, (_, i) => `Anggota ${i + 1}`);
-    
+    // Ambil daftar nama dari Textarea
+    const inputNama = document.getElementById('cfg-daftar-nama').value;
+    let customMembers = inputNama.split('\n').map(name => name.trim()).filter(name => name !== '');
+
+    // Gabungkan dengan default name jika jumlah nama kurang dari totalAnggota
+    members = [];
+    for (let i = 0; i < totalAnggota; i++) {
+        if (customMembers[i]) {
+            members.push(customMembers[i]);
+        } else {
+            members.push(`Anggota ${i + 1}`);
+        }
+    }
+
     // Dynamic State tracking untuk menjaga keadilan
     let stats = members.map(name => ({
         name,
@@ -174,7 +186,7 @@ function renderSummary() {
 
 // Inisialisasi Event Listener
 document.addEventListener('DOMContentLoaded', () => {
-    document.querySelectorAll('.grid-config input').forEach(input => {
+    document.querySelectorAll('.grid-config input, #cfg-daftar-nama').forEach(input => {
         input.addEventListener('input', updateSlotStats);
     });
     updateSlotStats();
