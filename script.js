@@ -10,9 +10,21 @@ function updateSlotStats() {
     const hari = parseInt(document.getElementById('cfg-hari').value) || 0;
     const piket = parseInt(document.getElementById('cfg-piket-hari').value) || 0;
     const nginap = parseInt(document.getElementById('cfg-nginap-hari').value) || 0;
+    const tahun = parseInt(document.getElementById('cfg-tahun').value) || 2026;
+    const bulan = (parseInt(document.getElementById('cfg-bulan').value) || 1) - 1;
+
+    // Hitung berapa banyak hari Jumat dan Sabtu dalam durasi hari yang ditentukan
+    let totalHariNginap = 0;
+    for (let d = 1; d <= hari; d++) {
+        const date = new Date(tahun, bulan, d);
+        const dayOfWeek = date.getDay();
+        if (dayOfWeek === 5 || dayOfWeek === 6) { // 5 = Jumat, 6 = Sabtu
+            totalHariNginap++;
+        }
+    }
 
     const totalPiket = hari * piket;
-    const totalNginap = hari * nginap;
+    const totalNginap = totalHariNginap * nginap;
 
     document.getElementById('stat-piket').innerText = totalPiket;
     document.getElementById('stat-nginap').innerText = totalNginap;
@@ -26,7 +38,7 @@ function generateSchedule() {
     const piketPerHari = parseInt(document.getElementById('cfg-piket-hari').value);
     const nginapPerHari = parseInt(document.getElementById('cfg-nginap-hari').value);
     const tahun = parseInt(document.getElementById('cfg-tahun').value) || 2026;
-    const bulan = (parseInt(document.getElementById('cfg-bulan').value) || 1) - 1; // 0-index JS Date
+    const bulan = (parseInt(document.getElementById('cfg-bulan').value) || 1) - 1;
 
     // Ambil daftar nama dari Textarea
     const inputNama = document.getElementById('cfg-daftar-nama').value;
@@ -54,9 +66,9 @@ function generateSchedule() {
     schedule = [];
 
     for (let day = 1; day <= totalHari; day++) {
-        // Hitung Tanggal & Hari
         const currentDate = new Date(tahun, bulan, day);
-        const namaHari = NAMA_HARI[currentDate.getDay()];
+        const dayOfWeek = currentDate.getDay(); // 0: Minggu, 1: Senin, ..., 5: Jumat, 6: Sabtu
+        const namaHari = NAMA_HARI[dayOfWeek];
         const tanggalStr = `${currentDate.getDate()} ${NAMA_BULAN[currentDate.getMonth()]} ${currentDate.getFullYear()}`;
 
         let dayDuty = { 
@@ -68,29 +80,31 @@ function generateSchedule() {
         };
         let assignedToday = new Set();
 
-        // 1. Assign Nginap First
-        for (let i = 0; i < nginapPerHari; i++) {
-            let candidates = stats.filter(m => !assignedToday.has(m.name));
-            
-            candidates.sort((a, b) => {
-                let aConsecutive = (a.lastDutyDay === day - 1) ? 1 : 0;
-                let bConsecutive = (b.lastDutyDay === day - 1) ? 1 : 0;
-                if (aConsecutive !== bConsecutive) return aConsecutive - bConsecutive;
-                if (a.nginapCount !== b.nginapCount) return a.nginapCount - b.nginapCount;
-                return a.total - b.total;
-            });
+        // 1. Assign Nginap HANYA jika hari Jumat (5) atau Sabtu (6)
+        if (dayOfWeek === 5 || dayOfWeek === 6) {
+            for (let i = 0; i < nginapPerHari; i++) {
+                let candidates = stats.filter(m => !assignedToday.has(m.name));
+                
+                candidates.sort((a, b) => {
+                    let aConsecutive = (a.lastDutyDay === day - 1) ? 1 : 0;
+                    let bConsecutive = (b.lastDutyDay === day - 1) ? 1 : 0;
+                    if (aConsecutive !== bConsecutive) return aConsecutive - bConsecutive;
+                    if (a.nginapCount !== b.nginapCount) return a.nginapCount - b.nginapCount;
+                    return a.total - b.total;
+                });
 
-            let selected = candidates[0];
-            if (selected) {
-                dayDuty.nginap.push(selected.name);
-                assignedToday.add(selected.name);
-                selected.nginapCount++;
-                selected.total++;
-                selected.lastDutyDay = day;
+                let selected = candidates[0];
+                if (selected) {
+                    dayDuty.nginap.push(selected.name);
+                    assignedToday.add(selected.name);
+                    selected.nginapCount++;
+                    selected.total++;
+                    selected.lastDutyDay = day;
+                }
             }
         }
 
-        // 2. Assign Piket
+        // 2. Assign Piket (Berjalan di setiap hari)
         for (let i = 0; i < piketPerHari; i++) {
             let candidates = stats.filter(m => !assignedToday.has(m.name));
 
@@ -119,7 +133,7 @@ function generateSchedule() {
     renderSummary();
 }
 
-// Render Kalender (Menampilkan Hari & Tanggal)
+// Render Kalender (Hanya menampilkan seksi Nginap jika ada anggotanya)
 function renderCalendar() {
     const calendarEl = document.getElementById('calendar');
     calendarEl.innerHTML = '';
@@ -132,9 +146,19 @@ function renderCalendar() {
             `<div class="duty-tag piket">${name}</div>`
         ).join('');
 
-        let nginapList = dayData.nginap.map(name => 
-            `<div class="duty-tag nginap">${name}</div>`
-        ).join('');
+        let nginapSection = '';
+        if (dayData.nginap.length > 0) {
+            let nginapList = dayData.nginap.map(name => 
+                `<div class="duty-tag nginap">${name}</div>`
+            ).join('');
+
+            nginapSection = `
+                <div class="slot-group">
+                    <div class="slot-title nginap">Nginap</div>
+                    ${nginapList}
+                </div>
+            `;
+        }
 
         dayCard.innerHTML = `
             <div class="day-header">
@@ -145,10 +169,7 @@ function renderCalendar() {
                 <div class="slot-title piket">Piket</div>
                 ${piketList}
             </div>
-            <div class="slot-group">
-                <div class="slot-title nginap">Nginap</div>
-                ${nginapList}
-            </div>
+            ${nginapSection}
         `;
 
         calendarEl.appendChild(dayCard);
