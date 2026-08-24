@@ -26,7 +26,7 @@ function generateSchedule() {
     const inputNama = document.getElementById('cfg-daftar-nama').value;
     let customMembers = inputNama.split('\n').map(name => name.trim()).filter(name => name !== '');
 
-    // Gabungkan dengan default name jika jumlah nama kurang dari totalAnggota
+    // Gabungkan dengan default name jika jumlah nama di textarea kurang dari totalAnggota
     members = [];
     for (let i = 0; i < totalAnggota; i++) {
         if (customMembers[i]) {
@@ -102,7 +102,7 @@ function generateSchedule() {
     renderSummary();
 }
 
-// Render Kalender Interaktif
+// Render Kalender (Static Display)
 function renderCalendar() {
     const calendarEl = document.getElementById('calendar');
     calendarEl.innerHTML = '';
@@ -111,29 +111,23 @@ function renderCalendar() {
         const dayCard = document.createElement('div');
         dayCard.className = 'day-card';
 
-        let piketSelects = dayData.piket.map((assigned, idx) => 
-            createMemberSelect(assigned, (newMember) => {
-                dayData.piket[idx] = newMember;
-                renderSummary();
-            }, 'piket-select')
+        let piketList = dayData.piket.map(name => 
+            `<div class="duty-tag piket">${name}</div>`
         ).join('');
 
-        let nginapSelects = dayData.nginap.map((assigned, idx) => 
-            createMemberSelect(assigned, (newMember) => {
-                dayData.nginap[idx] = newMember;
-                renderSummary();
-            }, 'nginap-select')
+        let nginapList = dayData.nginap.map(name => 
+            `<div class="duty-tag nginap">${name}</div>`
         ).join('');
 
         dayCard.innerHTML = `
             <div class="day-header">Hari Ke-${dayData.day}</div>
             <div class="slot-group">
                 <div class="slot-title piket">Piket</div>
-                ${piketSelects}
+                ${piketList}
             </div>
             <div class="slot-group">
                 <div class="slot-title nginap">Nginap</div>
-                ${nginapSelects}
+                ${nginapList}
             </div>
         `;
 
@@ -141,25 +135,7 @@ function renderCalendar() {
     });
 }
 
-// Helper untuk membuat elemen Dropdown Edit Manual
-function createMemberSelect(selectedMember, onChangeCallback, className) {
-    const options = members.map(m => 
-        `<option value="${m}" ${m === selectedMember ? 'selected' : ''}>${m}</option>`
-    ).join('');
-
-    const selectId = 'select-' + Math.random().toString(36).substr(2, 9);
-    
-    setTimeout(() => {
-        const el = document.getElementById(selectId);
-        if (el) {
-            el.addEventListener('change', (e) => onChangeCallback(e.target.value));
-        }
-    }, 0);
-
-    return `<select id="${selectId}" class="${className}">${options}</select>`;
-}
-
-// Render Rekap Bekerja
+// Render Rekap Beban Kerja
 function renderSummary() {
     const summaryTbody = document.getElementById('summary-table');
     summaryTbody.innerHTML = '';
