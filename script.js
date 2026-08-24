@@ -1,14 +1,14 @@
 let schedule = [];
 let members = [];
 
-// Helper Format Hari & Tanggal
+
 const NAMA_HARI = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
 const NAMA_BULAN = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
 
-// Daftar Anggota Khusus Nginap (Jumat & Sabtu)
+
 const KHUSUS_NGINAP = ['Haydar', 'Baihaqi', 'Gibran', 'Rafly', 'Roket', 'Lutfi', 'Kausar', 'Hakim'];
 
-// Update kalkulasi slot secara realtime
+
 function updateSlotStats() {
     const hari = parseInt(document.getElementById('cfg-hari').value) || 0;
     const piket = parseInt(document.getElementById('cfg-piket-hari').value) || 0;
@@ -16,12 +16,12 @@ function updateSlotStats() {
     const tahun = parseInt(document.getElementById('cfg-tahun').value) || 2026;
     const bulan = (parseInt(document.getElementById('cfg-bulan').value) || 1) - 1;
 
-    // Hitung berapa banyak hari Jumat dan Sabtu
+    
     let totalHariNginap = 0;
     for (let d = 1; d <= hari; d++) {
         const date = new Date(tahun, bulan, d);
         const dayOfWeek = date.getDay();
-        if (dayOfWeek === 5 || dayOfWeek === 6) { // 5 = Jumat, 6 = Sabtu
+        if (dayOfWeek === 5 || dayOfWeek === 6) { 
             totalHariNginap++;
         }
     }
@@ -34,7 +34,7 @@ function updateSlotStats() {
     document.getElementById('stat-total').innerText = totalPiket + totalNginap;
 }
 
-// Algoritma Generasi Jadwal
+
 function generateSchedule() {
     const totalHari = parseInt(document.getElementById('cfg-hari').value);
     const totalAnggota = parseInt(document.getElementById('cfg-anggota').value);
@@ -43,11 +43,11 @@ function generateSchedule() {
     const tahun = parseInt(document.getElementById('cfg-tahun').value) || 2026;
     const bulan = (parseInt(document.getElementById('cfg-bulan').value) || 1) - 1;
 
-    // Ambil daftar nama dari Textarea
+    
     const inputNama = document.getElementById('cfg-daftar-nama').value;
     let customMembers = inputNama.split('\n').map(name => name.trim()).filter(name => name !== '');
 
-    // Gabungkan dengan default name jika jumlah nama kurang dari totalAnggota
+    
     members = [];
     for (let i = 0; i < totalAnggota; i++) {
         if (customMembers[i]) {
@@ -57,7 +57,7 @@ function generateSchedule() {
         }
     }
 
-    // Tracking statistik per anggota
+    
     let stats = members.map(name => ({
         name,
         piketCount: 0,
@@ -70,7 +70,7 @@ function generateSchedule() {
 
     for (let day = 1; day <= totalHari; day++) {
         const currentDate = new Date(tahun, bulan, day);
-        const dayOfWeek = currentDate.getDay(); // 0: Minggu, ..., 5: Jumat, 6: Sabtu
+        const dayOfWeek = currentDate.getDay(); // 
         const namaHari = NAMA_HARI[dayOfWeek];
         const tanggalStr = `${currentDate.getDate()} ${NAMA_BULAN[currentDate.getMonth()]} ${currentDate.getFullYear()}`;
 
@@ -83,10 +83,10 @@ function generateSchedule() {
         };
         let assignedToday = new Set();
 
-        // 1. Assign Nginap (Hanya Jumat & Sabtu, dan KHUSUS 8 orang tertentu)
+        
         if (dayOfWeek === 5 || dayOfWeek === 6) {
             for (let i = 0; i < nginapPerHari; i++) {
-                // Filter kandidat: Belum bertugas hari ini DAN namanya ada dalam daftar KHUSUS_NGINAP
+                
                 let candidates = stats.filter(m => 
                     !assignedToday.has(m.name) && 
                     KHUSUS_NGINAP.some(kn => kn.toLowerCase() === m.name.toLowerCase())
@@ -111,7 +111,7 @@ function generateSchedule() {
             }
         }
 
-        // 2. Assign Piket (Berjalan setiap hari, terbuka untuk SEMUA anggota)
+        
         for (let i = 0; i < piketPerHari; i++) {
             let candidates = stats.filter(m => !assignedToday.has(m.name));
 
@@ -140,7 +140,7 @@ function generateSchedule() {
     renderSummary();
 }
 
-// Render Kalender
+
 function renderCalendar() {
     const calendarEl = document.getElementById('calendar');
     calendarEl.innerHTML = '';
@@ -183,7 +183,7 @@ function renderCalendar() {
     });
 }
 
-// Render Rekap Beban Kerja
+
 function renderSummary() {
     const summaryTbody = document.getElementById('summary-table');
     summaryTbody.innerHTML = '';
@@ -208,7 +208,7 @@ function renderSummary() {
     });
 }
 
-// Inisialisasi Event Listener
+
 document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.grid-config input, #cfg-daftar-nama').forEach(input => {
         input.addEventListener('input', updateSlotStats);

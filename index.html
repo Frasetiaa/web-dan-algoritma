@@ -11,36 +11,7 @@
 <div class="container">
     <h1>Sistem Jadwal Piket & Nginap</h1>
 
-    <!-- Konfigurasi Sistem -->
-    <div class="card">
-        <h2>Konfigurasi Sistem</h2>
-        <div class="grid-config">
-            <div class="form-group">
-                <label>Tahun</label>
-                <input type="number" id="cfg-tahun" value="2026">
-            </div>
-            <div class="form-group">
-                <label>Bulan (1-12)</label>
-                <input type="number" id="cfg-bulan" value="9" min="1" max="12">
-            </div>
-            <div class="form-group">
-                <label>Jumlah Hari</label>
-                <input type="number" id="cfg-hari" value="30">
-            </div>
-            <div class="form-group">
-                <label>Jumlah Anggota</label>
-                <input type="number" id="cfg-anggota" value="15">
-            </div>
-            <div class="form-group">
-                <label>Piket / Hari</label>
-                <input type="number" id="cfg-piket-hari" value="1">
-            </div>
-            <div class="form-group">
-                <label>Nginap / Hari</label>
-                <input type="number" id="cfg-nginap-hari" value="1">
-            </div>
-        </div>
-
+    
         <div class="form-group" style="margin-top: 15px;">
             <label for="cfg-daftar-nama">Daftar Nama Anggota (Satu nama per baris):</label>
             <textarea id="cfg-daftar-nama" rows="6" style="width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 6px; font-family: inherit; resize: vertical;">
@@ -76,21 +47,7 @@ Kausar</textarea>
         <div id="calendar" class="calendar-grid"></div>
     </div>
 
-    <!-- Ringkasan Pembagian Tugas -->
-    <div class="card">
-        <h2>Ringkasan Beban Kerja Anggota</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>Anggota</th>
-                    <th>Total Piket</th>
-                    <th>Total Nginap</th>
-                    <th>Total Tugas</th>
-                </tr>
-            </thead>
-            <tbody id="summary-table"></tbody>
-        </table>
-    </div>
+
 </div>
 
 <script src="script.js"></script>
