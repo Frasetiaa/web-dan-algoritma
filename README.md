@@ -26,12 +26,12 @@ Konfigurasi awal:
 | Bulan | September |
 | Jumlah hari | 30 |
 | Jumlah anggota | 15 |
-| Piket per hari | 3 |
-| Menginap per hari | 2 |
+| Piket per hari | 1 |
+| Menginap per hari | 1 |
 
 ### Perhitungan Slot
 
 ```text
-Total slot piket    = 30 × 3 = 90
-Total slot nginap = 30 × 2 = 60
-Total seluruh tugas = 90 + 60 = 150
+Total slot piket    = 30 × 1 = 30
+Total slot nginap = 30 × 1 = 30
+Total seluruh tugas = 30 + 30 = 60
